@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e;
 
-JENKINS_IMAGE=jenkins:latest
+JENKINS_IMAGE=rhub/rocker-jenkins:latest
 PLUGIN_ROOT="$(dirname ${0})"
 
 f_is_running() {
