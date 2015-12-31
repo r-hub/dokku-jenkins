@@ -39,6 +39,7 @@ case "$1" in
       PASSWORD=$(cat "$PASSWORD_FILE")
       docker run -d -p 8080:8080 -p 50000:50000            \
 	     --name dokku-jenkins                          \
+	     --env-file="${JENKINS_ENV_FILE}"              \
 	     -e JENKINS_ADMIN_USER="${JENKINS_ADMIN_USER}" \
 	     -e JENKINS_ADMIN_PASSWORD="${PASSWORD}"       \
 	     "${JENKINS_IMAGE}" >/dev/null
