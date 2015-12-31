@@ -37,9 +37,10 @@ case "$1" in
     if [ -z "${ID}" ] ; then
       create_password_file
       PASSWORD=$(cat "$PASSWORD_FILE")
-      docker run -d -p 8080:8080 -p 50000:50000           \
+      docker run -d -p 8080:8080 -p 50000:50000            \
+	     --name dokku-jenkins                          \
 	     -e JENKINS_ADMIN_USER="${JENKINS_ADMIN_USER}" \
-	     -e JENKINS_ADMIN_PASSWORD="${PASSWORD}"      \
+	     -e JENKINS_ADMIN_PASSWORD="${PASSWORD}"       \
 	     "${JENKINS_IMAGE}" >/dev/null
       echo "Jenkins has started"
      "${PLUGIN_ROOT}/commands" jenkins:info
