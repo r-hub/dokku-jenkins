@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+PLUGIN_DATA_ROOT=/var/lib/dokku/services/jenkins
+PASSWORD_FILE="${PLUGIN_DATA_ROOT}/PASSWORD"
