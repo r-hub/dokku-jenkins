@@ -1,7 +1,11 @@
 #!/bin/bash
 set -e;
 
-JENKINS_IMAGE=jenkins:latest
+source "$(dirname "$0")/config"
+
+JENKINS_IMAGE=rhub/rocker-jenkins:latest
+JENKINS_ADMIN_USER=admin
+
 PLUGIN_ROOT="$(dirname ${0})"
 
 f_is_running() {
@@ -11,6 +15,14 @@ f_is_running() {
 
    printf "${l_id}"
    return 0
+}
+
+create_password_file() {
+    if [[ ! -e "${PASSWORD_FILE}" ]]; then
+	password=$(openssl rand -hex 8)
+	echo "$password" > $PASSWORD_FILE
+	chmod 640 $PASSWORD_FILE
+    fi
 }
 
 # Check if name is specified
@@ -23,7 +35,14 @@ case "$1" in
   jenkins:start)
     ID="$(f_is_running)"
     if [ -z "${ID}" ] ; then
-      docker run -d -p 8080:8080 -p 50000:50000 "${JENKINS_IMAGE}" >/dev/null
+      create_password_file
+      PASSWORD=$(cat "$PASSWORD_FILE")
+      docker run -d -p 8080:8080 -p 50000:50000            \
+	     --name dokku-jenkins                          \
+	     --env-file="${JENKINS_ENV_FILE}"              \
+	     -e JENKINS_ADMIN_USER="${JENKINS_ADMIN_USER}" \
+	     -e JENKINS_ADMIN_PASSWORD="${PASSWORD}"       \
+	     "${JENKINS_IMAGE}" >/dev/null
       echo "Jenkins has started"
      "${PLUGIN_ROOT}/commands" jenkins:info
     else

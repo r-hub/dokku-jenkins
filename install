@@ -1,4 +1,11 @@
 #!/bin/bash
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
 
-docker pull jenkins
+source "$(dirname "$0")/config"
 
+docker pull rhub/rocker-jenkins
+
+mkdir -p "$PLUGIN_DATA_ROOT" || \
+    echo "Failed to create $PLUGIN_DATA_ROOT directory"
+chown dokku:dokku "$PLUGIN_DATA_ROOT"
+touch ${JENKINS_ENV_FILE}
