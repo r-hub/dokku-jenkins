@@ -3,7 +3,7 @@ set -e;
 
 source "$(dirname "$0")/config"
 
-JENKINS_IMAGE=rhub/rocker-jenkins:latest
+JENKINS_IMAGE=rhub/rhub-jenkins:latest
 JENKINS_ADMIN_USER=admin
 
 PLUGIN_ROOT="$(dirname ${0})"

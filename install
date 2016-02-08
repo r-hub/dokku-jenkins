@@ -3,7 +3,7 @@ set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
 
 source "$(dirname "$0")/config"
 
-docker pull rhub/rocker-jenkins
+docker pull rhub/rhub-jenkins
 
 mkdir -p "$PLUGIN_DATA_ROOT" || \
     echo "Failed to create $PLUGIN_DATA_ROOT directory"
