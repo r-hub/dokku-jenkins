@@ -1,5 +1,35 @@
 #!/usr/bin/env bash
 
+## Plugin data is stored here
 PLUGIN_DATA_ROOT=/var/lib/dokku/services/jenkins
+
+## This would be different if we had different Jenkins instances
+## for different apps, but we don't
+SERVICE_ROOT="$PLUGIN_DATA_ROOT"
+
+## Linked apps are stored here, just the app names, one per line,
+## sorted alphabetically
+LINKS_FILE="$SERVICE_ROOT/LINKS"
+
+## The file that contains the Jenkins admin password
 PASSWORD_FILE="${PLUGIN_DATA_ROOT}/PASSWORD"
+
+## File that contains environment variables to pass to the
+## Jenkins container
 JENKINS_ENV_FILE="${PLUGIN_DATA_ROOT}/ENV"
+
+## Name of the container
+JENKINS_CONTAINER_NAME="dokku.jenkins"
+
+## Host name, so that we can refer to this when linking
+JENKINS_HOST_NAME="dokku-jenkins"
+
+## This is the default Jenkins port, so we just leave it at that
+JENKINS_PORT="8080"
+
+## Docker image to use. We need our own image, to be able to pass
+## configuration information to it
+JENKINS_IMAGE=rhub/rhub-jenkins:latest
+
+## This is hardwired for now.
+JENKINS_ADMIN_USER=admin

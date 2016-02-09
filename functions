@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+source "$(dirname "$0")/config"
+
+service_link() {
+  local APP="$1"
+  local SERVICE_URL=$(service_url)
+  local EXISTING_CONFIG=$(dokku config "$APP")
+  local LINK=$(echo "$EXISTING_CONFIG" | grep "$SERVICE_URL" | cut -d: -f1) || true
+  local LINKS_FILE="$LINKS_FILE"
+
+  [[ -n $LINK ]] && dokku_log_fail "Already linked as $LINK"
+  mkdir -p "$SERVICE_ROOT" || dokku_log_fail "Unable to create service directory"
+  touch "$LINKS_FILE"
+  echo "$APP" >> "$LINKS_FILE"
+  sort "$LINKS_FILE" -u -o "$LINKS_FILE"
+
+  dokku docker-options:add "$APP" build,deploy,run "--link $JENKINS_CONTAINER_NAME:$JENKINS_HOST_NAME"
+  dokku config:set "$APP" "JENKINS_URL=$SERVICE_URL"
+}
+
+service_unlink() {
+  local APP="$1"
+  local SERVICE_URL=$(service_url)
+  local EXISTING_CONFIG=$(dokku config "$APP")
+  local LINK=($(echo "$EXISTING_CONFIG" | grep "$SERVICE_URL" | cut -d: -f1)) || true
+
+  [[ -z ${LINK[*]} ]] && dokku_log_fail "Not linked to app $APP"
+  remove_from_links_file "$APP"
+
+  dokku docker-options:remove "$APP" build,deploy,run "--link $JENKINS_CONTAINER_NAME:$JENKINS_HOST_NAME"
+  dokku config:unset "$APP" "${LINK[*]}"
+}
+
+service_url() {
+  local PASSWORD="$(cat "$PASSWORD_FILE")"
+  echo "http://admin:$PASSWORD@$JENKINS_HOST_NAME:${JENKINS_PORT}"
+}
+
+remove_from_links_file() {
+  local APP="$1"
+
+  mkdir -p "$SERVICE_ROOT" || dokku_log_fail "Unable to create service directory"
+  touch "$LINKS_FILE"
+  sed -i "/^$APP\$/d" "$LINKS_FILE"
+  sort "$LINKS_FILE" -u -o "$LINKS_FILE"
+}

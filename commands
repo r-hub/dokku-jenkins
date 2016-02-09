@@ -1,12 +1,16 @@
 #!/bin/bash
 set -e;
 
-source "$(dirname "$0")/config"
-
-JENKINS_IMAGE=rhub/rhub-jenkins:latest
-JENKINS_ADMIN_USER=admin
+PLUGIN_BASE_PATH="$PLUGIN_PATH"
+if [[ -n $DOKKU_API_VERSION ]]; then
+  PLUGIN_BASE_PATH="$PLUGIN_ENABLED_PATH"
+fi
 
 PLUGIN_ROOT="$(dirname ${0})"
+
+source "$PLUGIN_BASE_PATH/common/functions"
+source "$PLUGIN_ROOT/functions"
+source "$PLUGIN_ROOT/config"
 
 f_is_running() {
    local l_id
@@ -38,7 +42,8 @@ case "$1" in
       create_password_file
       PASSWORD=$(cat "$PASSWORD_FILE")
       docker run -d -p 8080:8080 -p 50000:50000            \
-	     --name dokku-jenkins                          \
+	     --name ${JENKINS_CONTAINER_NAME}              \
+	     --hostname ${JENKINS_HOST_NAME}               \
 	     --env-file="${JENKINS_ENV_FILE}"              \
 	     -e JENKINS_ADMIN_USER="${JENKINS_ADMIN_USER}" \
 	     -e JENKINS_ADMIN_PASSWORD="${PASSWORD}"       \
@@ -85,12 +90,26 @@ case "$1" in
     fi
     ;;
 
+  jenkins:link)
+    [[ -z $2 ]] && dokku_log_fail "Please specify an app to run the command on"
+    verify_app_name "$2"
+    service_link "$2"
+    ;;
+
+  jenkins:unlink)
+    [[ -z $2 ]] && dokku_log_fail "Please specify an app to run the command on"
+    verify_app_name "$2"
+    service_unlink "$2"
+    ;;
+
   help)
     cat<<EOF
     jenkins, Display container information
     jenkins:start, Start Jenkins
     jenkins:stop, Stop Jenkins
     jenkins:logs, Display last logs from Jenkins container
+    jenkins:link <app>, Links an app to Jenkins
+    jenkins:unlink <app>, Unlink an app from Jenkins
 EOF
     ;;
 
@@ -99,4 +118,3 @@ EOF
     ;;
 
 esac
-

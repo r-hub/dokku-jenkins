@@ -7,5 +7,7 @@ docker pull rhub/rhub-jenkins
 
 mkdir -p "$PLUGIN_DATA_ROOT" || \
     echo "Failed to create $PLUGIN_DATA_ROOT directory"
-chown dokku:dokku "$PLUGIN_DATA_ROOT"
+
 touch ${JENKINS_ENV_FILE}
+touch ${LINKS_FILE}
+chown -R dokku:dokku "$PLUGIN_DATA_ROOT"
