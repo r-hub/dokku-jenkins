@@ -37,32 +37,13 @@ fi
 case "$1" in
 
   jenkins:start)
-    ID="$(f_is_running)"
-    if [ -z "${ID}" ] ; then
-      create_password_file
-      PASSWORD=$(cat "$PASSWORD_FILE")
-      docker run -d -p 8080:8080 -p 50000:50000            \
-	     --name ${JENKINS_CONTAINER_NAME}              \
-	     --hostname ${JENKINS_HOST_NAME}               \
-	     --env-file="${JENKINS_ENV_FILE}"              \
-	     -e JENKINS_ADMIN_USER="${JENKINS_ADMIN_USER}" \
-	     -e JENKINS_ADMIN_PASSWORD="${PASSWORD}"       \
-	     "${JENKINS_IMAGE}" >/dev/null
-      echo "Jenkins has started"
-     "${PLUGIN_ROOT}/commands" jenkins:info
-    else
-      echo "Jenkins is already up and running."
-    fi
+    create_password_file
+    service_start
+    "${PLUGIN_ROOT}/commands" jenkins:info
     ;;
 
   jenkins:stop)
-    ID="$(f_is_running)"
-    if [ -n "${ID}" ] ; then
-      docker stop "${ID}" >/dev/null
-      echo "Jenkins has stopped."
-    else
-      echo "Jenkins is not running."
-    fi
+    service_stop
     ;;
 
   jenkins | jenkins:info)

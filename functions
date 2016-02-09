@@ -46,3 +46,33 @@ remove_from_links_file() {
   sed -i "/^$APP\$/d" "$LINKS_FILE"
   sort "$LINKS_FILE" -u -o "$LINKS_FILE"
 }
+
+service_start() {
+  local ID=$(docker ps -f status=running | grep "$JENKINS_CONTAINER_NAME" | awk '{print $1}') || true
+  [[ -n $ID ]] && dokku_log_warn "Jenkins is already started" && return 0
+
+  dokku_log_info1_quiet "Starting container"
+  local PREVIOUS_ID=$(docker ps -f status=exited | grep "$JENKINS_CONTAINER_NAME" | awk '{print $1}') || true
+  if [[ -n $PREVIOUS_ID ]]; then
+    docker start "$PREVIOUS_ID" > /dev/null
+  else
+    PASSWORD=$(cat "$PASSWORD_FILE")
+    docker run -d -p 8080:8080 -p 50000:50000            \
+	   --name ${JENKINS_CONTAINER_NAME}              \
+	   --hostname ${JENKINS_HOST_NAME}               \
+	   --env-file="${JENKINS_ENV_FILE}"              \
+	   -e JENKINS_ADMIN_USER="${JENKINS_ADMIN_USER}" \
+	   -e JENKINS_ADMIN_PASSWORD="${PASSWORD}"       \
+	   "${JENKINS_IMAGE}" >/dev/null
+    echo "Jenkins has started"
+  fi
+}
+
+service_stop() {
+  local ID=$(docker ps -f status=running | grep "$JENKINS_CONTAINER_NAME" | awk '{print $1}') || true
+  [[ -z $ID ]] && dokku_log_warn "Jenkins is already stopped" && return 0
+
+  if [[ -n $ID ]]; then
+    docker stop "$JENKINS_CONTAINER_NAME" > /dev/null
+  fi
+}
