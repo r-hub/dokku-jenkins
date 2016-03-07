@@ -51,6 +51,12 @@ service_start() {
   local ID=$(docker ps -f status=running | grep "$JENKINS_CONTAINER_NAME" | awk '{print $1}') || true
   [[ -n $ID ]] && dokku_log_warn "Jenkins is already started" && return 0
 
+  # Add all JENKINS_* environment variables to $JENKINS_ENV_FILE
+  # This is simpler than always adding the new ones to the docker run
+  # command line.
+  : ${JENKINS_ENV_FILE:=$(mktemp)}
+  set | grep -a "^JENKINS_" >> ${JENKINS_ENV_FILE}
+
   dokku_log_info1_quiet "Starting container"
   local PREVIOUS_ID=$(docker ps -f status=exited | grep "$JENKINS_CONTAINER_NAME" | awk '{print $1}') || true
   if [[ -n $PREVIOUS_ID ]]; then
@@ -61,8 +67,6 @@ service_start() {
 	   --name ${JENKINS_CONTAINER_NAME}              \
 	   --hostname ${JENKINS_HOST_NAME}               \
 	   --env-file="${JENKINS_ENV_FILE}"              \
-	   -e JENKINS_ADMIN_USER="${JENKINS_ADMIN_USER}" \
-	   -e JENKINS_ADMIN_PASSWORD="${PASSWORD}"       \
 	   "${JENKINS_IMAGE}" >/dev/null
     echo "Jenkins has started"
   fi
